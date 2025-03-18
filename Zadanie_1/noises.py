@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 # def uni_dist_noise(A, t1, d):
 #     f = 1000
@@ -94,26 +95,30 @@ def rectangular_symmetrical_signal_function(t, A, T, kw, t1):
     return 0
 
 
-# def triangle_signal(A, T, t1, d, kw):
-#     f = 1000
-#     x = np.linspace(t1, t1 + d, int(f * d))
-#     y = np.zeros_like(x)
-#
-#     C = list(range(int(t1), int(t1 + d) + 1))
-#
-#     for k in C:
-#         start_time = k * T + t1
-#         end_time = kw * T + k * T + t1
-#
-#         mask_rise = (x >= start_time) & (x < end_time)
-#         y[mask_rise] = (A / (kw * T)) * (x[mask_rise] - k * T - t1)
-#
-#         start_time = end_time
-#         end_time = T + k * T + t1
-#         mask_fall = (x >= start_time) & (x < end_time)
-#         y[mask_fall] = (-A / (T * (1 - kw))) * (x[mask_fall] - k * T - t1) + A / (1 - kw)
-#
-#     return x, y
+def triangle_signal(A, T, t1, d, kw):
+    f = 1000
+    x = np.linspace(t1, t1 + d, int(f * d))
+    y = np.zeros_like(x)
+
+    C = range(int((t1 / T)), int((t1 + d) / T) + 1)
+
+    for k in C:
+        start_time = k * T + t1
+        end_time = kw * T + k * T + t1
+
+        mask_rise = (x >= start_time) & (x < end_time)
+        y[mask_rise] = (A / (kw * T)) * (x[mask_rise] - k * T - t1)
+
+        start_time = end_time
+        end_time = T + k * T + t1
+        mask_fall = (x >= start_time) & (x < end_time)
+        y[mask_fall] = (-A / (T * (1 - kw))) * (x[mask_fall] - k * T - t1) + A / (1 - kw)
+
+    return x, y
+
+# x, y = triangle_signal(1, 1, 0, 10, 0.5)
+# plt.figure(figsize=(10, 4))
+# plt.plot(x, y, color="red")
 
 def triangle_signal_function(t, A, T, kw, t1):
     C = int((t - t1) // T)
@@ -124,8 +129,9 @@ def triangle_signal_function(t, A, T, kw, t1):
     start_time = end_time
     end_time = start_time + (T - kw * T)
     if start_time <= t < end_time:
-        return (-A / ((1 - kw) * T)) * (t - start_time) + A / (1 - kw)
+        return (-A / ((1 - kw) * T)) * (t - start_time) + A
     return 0
+
 
 # def unit_jump(A, t1, d, ts):
 #     f = 1000
@@ -159,6 +165,21 @@ def unit_jump_function(t, A, ts):
 
 def unit_impulse_function(t, A, ns):
     return A if t == ns else 0
+
+t1_domain = 0    # początek
+t2_domain = 10   # koniec
+f_sampling = 5
+x = np.linspace(t1_domain, t2_domain, int(f_sampling * (t2_domain - t1_domain)))
+
+ns = 25
+ns = x[ns]
+
+y = np.array([unit_impulse_function(t, 1, ns) for t in x])
+
+# plt.plot(x, y, color = "red")
+plt.scatter(x, y, color = "red", marker = "s", s=10)
+plt.plot(x, np.zeros_like(x), color = "blue", linestyle= "dashed")
+plt.show()
 
 # def impulse_noise(A, t1, d, f, p):
 #     x = np.arange(t1, t1 + d, 1/f)
