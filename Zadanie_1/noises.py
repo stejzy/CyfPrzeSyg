@@ -166,20 +166,6 @@ def unit_jump_function(t, A, ts):
 def unit_impulse_function(t, A, ns):
     return A if t == ns else 0
 
-t1_domain = 0    # początek
-t2_domain = 10   # koniec
-f_sampling = 5
-x = np.linspace(t1_domain, t2_domain, int(f_sampling * (t2_domain - t1_domain)))
-
-ns = 25
-ns = x[ns]
-
-y = np.array([unit_impulse_function(t, 1, ns) for t in x])
-
-# plt.plot(x, y, color = "red")
-plt.scatter(x, y, color = "red", marker = "s", s=10)
-plt.plot(x, np.zeros_like(x), color = "blue", linestyle= "dashed")
-plt.show()
 
 # def impulse_noise(A, t1, d, f, p):
 #     x = np.arange(t1, t1 + d, 1/f)
