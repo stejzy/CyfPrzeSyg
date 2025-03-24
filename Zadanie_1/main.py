@@ -25,21 +25,18 @@ signal_functions = {
     "11": {"name": "szum impulsowy", "func": impulse_noise_function, "params": ["A", "p"], "type": "discrete"},
 }
 
-# Domyślne parametry domeny sygnału
-t1_domain = 0  # początek
-t2_domain = 10  # koniec
-f_sampling = 50  # częstotliwość próbkowania
+t1_domain = 0
+t2_domain = 10
+f_sampling = 50
 
 signals = {}
 
 
 def generate_domain():
-    """Generuje wektor czasu wg aktualnych parametrów domeny."""
     return np.delete(np.linspace(t1_domain, t2_domain, int(f_sampling * (t2_domain - t1_domain)) + 1), -1)
 
 
 def generate_signal():
-    """Generuje pojedynczy sygnał wg wyboru użytkownika i zapisuje go pod podaną nazwą."""
     print("\n-- Wybierz rodzaj sygnału/szumu --")
     for key, info in signal_functions.items():
         print(f"{key}. {info['name']}")
@@ -50,7 +47,6 @@ def generate_signal():
 
     params = {}
 
-    # Pobierz parametry specyficzne dla wybranej funkcji
     for param in signal_functions[choice]["params"]:
         while True:
             try:
@@ -68,13 +64,11 @@ def generate_signal():
         return
 
     x = generate_domain()
-    # Dla każdego punktu czasu wyznacz wartość sygnału. Uwaga:
-    # Funkcje przyjmują parametry w kolejności: t, a potem pozostałe.
 
     func = signal_functions[choice]["func"]
     if int(choice) == 10:
         params['ns'] = x[int(params['ns'])]
-        print(f"Po przypisaniu: params['ns'] = {params['ns']}")  # Powinno być 0.1
+        print(f"Po przypisaniu: params['ns'] = {params['ns']}")
 
     y = np.array([func(t, *[params[p] for p in signal_functions[choice]["params"]]) for t in x])
     signals[label] = {"name": signal_functions[choice]["name"], "x": x, "y": y,
@@ -92,7 +86,6 @@ def generate_signal():
 
 
 def arithmetic_operation():
-    """Wykonuje operację arytmetyczną na dwóch sygnałach."""
     if len(signals) < 2:
         print("Wygeneruj co najmniej dwa sygnały przed wykonaniem operacji.")
         return
@@ -115,7 +108,6 @@ def arithmetic_operation():
     #     type = "discrete"
     type = "discrete"
 
-    # Zakładamy, że domena (x) jest taka sama dla obu sygnałów.
     print("\nWybierz operację arytmetyczną:")
     print("1. Dodawanie")
     print("2. Odejmowanie")
@@ -167,7 +159,6 @@ def arithmetic_operation():
 
 
 def show_plot(label_choice):
-    """Wyświetla wykres wybranego sygnału."""
     # if not signals:
     #     print("Brak wygenerowanych sygnałów. Najpierw wygeneruj sygnał.")
     #     return
@@ -185,7 +176,6 @@ def show_plot(label_choice):
 
     fig, axes = plt.subplots(2, 1, figsize=(10, 6), gridspec_kw={'height_ratios': [2, 1]})
 
-    # Wykres sygnału
     if signals[label_choice]["type"] == "continuous":
         axes[0].plot(x, y, color="red", label=signals[label_choice]["name"])
     else:
@@ -199,7 +189,6 @@ def show_plot(label_choice):
     axes[0].legend()
     axes[0].grid(True)
 
-    # Histogram
     axes[1].hist(y, bins=20, color='gray', edgecolor='black', alpha=0.7)
     axes[1].set_xlabel("Amplituda")
     axes[1].set_ylabel("Częstotliwość")
@@ -236,7 +225,6 @@ def calculate_continous_params(func, param_values):
     print(f"Wartość średnia: {mean_value:.4f}")
 
     # Wartość średnia bezwzględna
-    # Zmieniamy tutaj, aby wywołać np.abs(func(t, *param_values))
     integral = quad(lambda t: np.abs(func(t, *param_values)), t1_domain, t2_domain, limit=1000)[0]
     abs_mean_value = integral / (t2_domain - t1_domain)
     print(f"Wartość średnia bezwzględna: {abs_mean_value:.4f}")
@@ -260,7 +248,6 @@ def calculate_continous_params(func, param_values):
 
 
 def change_domain():
-    """Pozwala zmienić parametry domeny sygnału."""
     global t1_domain, t2_domain, f_sampling
     print(f"\nAktualna domena: t1 = {t1_domain}, t2 = {t2_domain}, f = {f_sampling}")
     inp = input("Podaj nową wartość t1 (lub naciśnij Enter, aby pozostawić): ").strip()
@@ -282,48 +269,6 @@ def change_domain():
         except ValueError:
             print("Nieprawidłowa wartość.")
     print("Domena została zaktualizowana.\n")
-
-
-def save_signal_to_file(filename, y, start_time=0.0, fs=1000.0, is_complex=False, is_continuous=False):
-    """
-    Zapisuje sygnał do pliku binarnego.
-    W nagłówku zapisujemy: czas początkowy, częstotliwość próbkowania,
-    typ wartości (0 – rzeczywiste, 1 – zespolone) oraz liczbę próbek.
-    Następnie zapisujemy amplitudy próbek jako float64.
-    """
-    flag = 1 if is_complex else 0
-    continuous_flag = 1 if is_continuous else 0
-    header = struct.pack(HEADER_FORMAT, start_time, fs, flag, continuous_flag, len(y))
-    with open(filename, "wb") as f:
-        f.write(header)
-        if is_complex:
-            data = np.empty((len(y), 2), dtype=np.float64)
-            data[:, 0] = y.real
-            data[:, 1] = y.imag
-            data.tofile(f)
-        else:
-            y.astype(np.float64).tofile(f)
-    print(f"Zapisano sygnał do pliku: {filename}")
-
-
-def read_signal_from_file(filename):
-    """
-    Odczytuje sygnał z pliku binarnego według ustalonego formatu.
-    Zwraca: start_time, fs, y (wektor próbek).
-    """
-    with open(filename, "rb") as f:
-        header_size = struct.calcsize(HEADER_FORMAT)
-        header_bytes = f.read(header_size)
-        start_time, fs, flag, continuous_flag, n_samples = struct.unpack(HEADER_FORMAT, header_bytes)
-        is_complex = bool(flag)
-        is_continuous = bool(continuous_flag)
-        if is_complex:
-            data = np.fromfile(f, dtype=np.float64)
-            data = data.reshape((n_samples, 2))
-            y = data[:, 0] + 1j * data[:, 1]
-        else:
-            y = np.fromfile(f, dtype=np.float64)
-    return start_time, fs, is_continuous, y
 
 
 def save():
@@ -367,7 +312,6 @@ def load():
         f_type = "continuous" if is_continuous else "discrete"
         print(f'TEST DLA FS: {fs}')
         label = input("Podaj etykietę dla wczytanego sygnału: ").strip()
-        # Generujemy wektor czasu na podstawie start_time i fs
         x = start_time + np.arange(len(y)) / fs
         signals[label] = {"name": f"Sygnał z pliku {filename}", "x": x, "y": y, "type": f_type,
                           "start_time": start_time,
@@ -381,33 +325,29 @@ def load():
 
 
 def main_menu():
-    """Główne menu programu."""
     while True:
         print("==========================================")
         print("              MENU GŁÓWNE                ")
         print("==========================================")
         print("1. Wygeneruj sygnał/szum")
         print("2. Operacje arytmetyczne na sygnałach")
-        print("3. Wyświetl wykres sygnału")
-        print("4. Zmień parametry domeny (t1, t2, f)")
-        print("5. Zapis do pliku")
-        print("6. Odczyt z pliku")
-        print("7. Wyjście")
+        print("3. Zmień parametry domeny (t1, t2, f)")
+        print("4. Zapis do pliku")
+        print("5. Odczyt z pliku")
+        print("6. Wyjście")
         choice = input("Wybierz opcję: ").strip()
 
         if choice == "1":
             generate_signal()
         elif choice == "2":
             arithmetic_operation()
-        # elif choice == "3":
-        #     show_plot()
-        elif choice == "4":
+        elif choice == "3":
             change_domain()
-        elif choice == "5":
+        elif choice == "4":
             save()
-        elif choice == "6":
+        elif choice == "5":
             load()
-        elif choice == "7":
+        elif choice == "6":
             print("Koniec programu.")
             break
         else:
