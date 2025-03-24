@@ -56,8 +56,6 @@ def generate_signal():
             except ValueError:
                 print("Błędna wartość, spróbuj ponownie.")
 
-    print(params)
-
     label = input("Podaj nazwę sygnału (unikatowa etykieta): ").strip()
     if label == "":
         print("Nazwa sygnału nie może być pusta.")
@@ -171,6 +169,11 @@ def show_plot(label_choice):
     #     print("Nieprawidłowa etykieta.")
     #     return
 
+    bins = int(input("Podaj ilość przedziałów (od 5 do 20): ").strip())
+    if bins < 5 or bins > 20:
+        print("Nieprawidłowe wartości")
+        return
+
     x = signals[label_choice]["x"]
     y = signals[label_choice]["y"]
 
@@ -189,7 +192,7 @@ def show_plot(label_choice):
     axes[0].legend()
     axes[0].grid(True)
 
-    axes[1].hist(y, bins=20, color='gray', edgecolor='black', alpha=0.7)
+    axes[1].hist(y, bins=bins, color='gray', edgecolor='black', alpha=0.7)
     axes[1].set_xlabel("Amplituda")
     axes[1].set_ylabel("Częstotliwość")
     axes[1].set_title("Histogram amplitud sygnału")
