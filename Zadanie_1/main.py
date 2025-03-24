@@ -20,7 +20,7 @@ signal_functions = {
           "params": ["A", "T", "kw", "t1"], "type": "continuous"},
     "8": {"name": "sygnał trójkątny", "func": triangle_signal_function, "params": ["A", "T", "kw", "t1"],
           "type": "continuous"},
-    "9": {"name": "skok jednostkowy", "func": unit_jump_function, "params": ["A", "ts"], "type": "discrete"},
+    "9": {"name": "skok jednostkowy", "func": unit_jump_function, "params": ["A", "ts"], "type": "continuous"},
     "10": {"name": "impuls jednostkowy", "func": unit_impulse_function, "params": ["A", "ns"], "type": "discrete"},
     "11": {"name": "szum impulsowy", "func": impulse_noise_function, "params": ["A", "p"], "type": "discrete"},
 }
